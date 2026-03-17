@@ -1,0 +1,19 @@
+{
+    "ImageId": "ami-0be9cb9f67c8dabd6",
+    "InstanceType": "t3.micro",
+    "KeyName": "n8n-key-pair",
+    "SecurityGroupIds": ["sg-0afb72601a16b9dca"],
+    "IamInstanceProfile": {"Name": "CrawlApiRole"},
+    "UserData": "USER_DATA_PLACEHOLDER",
+    "InstanceMarketOptions": {
+        "MarketType": "spot",
+        "SpotOptions": {
+            "SpotInstanceType": "one-time",
+            "InstanceInterruptionBehavior": "terminate"
+        }
+    },
+    "TagSpecifications": [{
+        "ResourceType": "instance",
+        "Tags": [{"Key": "Name", "Value": "crawl-api-spot"}]
+    }]
+}

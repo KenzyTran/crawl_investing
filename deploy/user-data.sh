@@ -9,12 +9,11 @@ echo "=== Setup started at $(date) ==="
 # ──────── CẤU HÌNH ────────
 REPO_URL="https://github.com/KenzyTran/crawl_investing.git"
 APP_DIR="/home/ec2-user/crawl_investing"
-N8N_VARIABLE_KEY="CRAWL_SERVER_IP"
 APP_PORT=5000
 
-# ──────── Lấy secrets từ SSM Parameter Store (miễn phí) ────────
-N8N_BASE_URL=$(aws ssm get-parameter --name "/crawl-api/n8n-base-url" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
-N8N_API_KEY=$(aws ssm get-parameter --name "/crawl-api/n8n-api-key" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
+# ──────── Lấy secrets từ SSM Parameter Store ────────
+TELEGRAM_BOT_TOKEN=$(aws ssm get-parameter --name "/crawl-api/telegram-bot-token" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
+TELEGRAM_CHAT_ID=$(aws ssm get-parameter --name "/crawl-api/telegram-chat-id" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
 echo "Loaded secrets from SSM Parameter Store"
 
 # ──────── Cài đặt dependencies ────────
@@ -79,9 +78,8 @@ Restart=always
 RestartSec=10
 Environment=EC2_INSTANCE_ID=$INSTANCE_ID
 Environment=AWS_REGION=$REGION
-Environment=N8N_BASE_URL=$N8N_BASE_URL
-Environment=N8N_API_KEY=$N8N_API_KEY
-Environment=N8N_VARIABLE_KEY=$N8N_VARIABLE_KEY
+Environment=TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
+Environment=TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
 Environment=WATCHDOG_INTERVAL=60
 Environment=WATCHDOG_MAX_FAILURES=3
 Environment=WATCHDOG_COOLDOWN=300
@@ -99,35 +97,17 @@ systemctl start crawl-api
 sleep 3
 systemctl start crawl-watchdog
 
-# ──────── Cập nhật IP lên n8n ────────
-if [ -n "$N8N_BASE_URL" ] && [ -n "$N8N_API_KEY" ]; then
-    python3 - <<PYEOF
-import requests, json, sys
-
-base = "${N8N_BASE_URL}".rstrip("/")
-headers = {"X-N8N-API-KEY": "${N8N_API_KEY}", "Content-Type": "application/json"}
-key = "${N8N_VARIABLE_KEY}"
-value = "http://${PUBLIC_IP}:${APP_PORT}"
-
-try:
-    resp = requests.get(f"{base}/api/v1/variables", headers=headers, timeout=10)
-    resp.raise_for_status()
-    data = resp.json().get("data", resp.json()) if isinstance(resp.json(), dict) else resp.json()
-    existing = next((v for v in data if v.get("key") == key), None)
-
-    if existing:
-        r = requests.patch(f"{base}/api/v1/variables/{existing['id']}",
-                          headers=headers, json={"key": key, "value": value}, timeout=10)
-        r.raise_for_status()
-        print(f"Updated n8n variable: {key} = {value}")
-    else:
-        r = requests.post(f"{base}/api/v1/variables",
-                         headers=headers, json={"key": key, "value": value}, timeout=10)
-        r.raise_for_status()
-        print(f"Created n8n variable: {key} = {value}")
-except Exception as e:
-    print(f"Warning: Could not update n8n: {e}", file=sys.stderr)
-PYEOF
+# ──────── Gửi IP qua Telegram ────────
+if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+    MSG="🟢 Crawl API Started
+IP: $PUBLIC_IP
+URL: http://$PUBLIC_IP:$APP_PORT
+Instance: $INSTANCE_ID"
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+        -d chat_id="$TELEGRAM_CHAT_ID" \
+        -d text="$MSG" \
+        -d parse_mode="HTML"
+    echo "Sent IP notification to Telegram"
 fi
 
 echo "=== Setup completed at $(date) ==="

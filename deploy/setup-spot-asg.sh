@@ -2,6 +2,7 @@
 # Tạo Launch Template + Auto Scaling Group cho spot instance
 # Chạy script này từ máy local (cần AWS CLI đã cấu hình)
 set -e
+aws() { cmd.exe /c "aws $*"; }
 
 # ──────── CẤU HÌNH - SỬA TRƯỚC KHI CHẠY ────────
 REGION="ap-southeast-1"
