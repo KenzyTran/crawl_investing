@@ -1,2 +1,4 @@
 cloudscraper
 flask
+boto3
+requests

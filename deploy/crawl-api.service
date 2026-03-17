@@ -1,0 +1,15 @@
+[Unit]
+Description=Crawl Investing API
+After=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/crawl_investing
+ExecStart=/usr/bin/python3 app.py
+Restart=always
+RestartSec=5
+Environment=APP_PORT=5000
+
+[Install]
+WantedBy=multi-user.target

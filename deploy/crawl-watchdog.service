@@ -1,0 +1,30 @@
+[Unit]
+Description=Crawl API Watchdog - Auto IP rotation
+After=crawl-api.service
+Requires=crawl-api.service
+
+[Service]
+Type=simple
+User=ec2-user
+WorkingDirectory=/home/ec2-user/crawl_investing
+ExecStart=/usr/bin/python3 watchdog.py
+Restart=always
+RestartSec=10
+
+# === CẤU HÌNH BẮT BUỘC ===
+Environment=EC2_INSTANCE_ID=i-xxxxxxxxxxxxxxxxx
+Environment=AWS_REGION=ap-southeast-1
+
+# === CẤU HÌNH N8N (để tự động cập nhật IP) ===
+Environment=N8N_BASE_URL=https://your-n8n-domain.com
+Environment=N8N_API_KEY=your-n8n-api-key
+Environment=N8N_VARIABLE_KEY=CRAWL_SERVER_IP
+
+# === TUỲ CHỈNH ===
+Environment=WATCHDOG_INTERVAL=60
+Environment=WATCHDOG_MAX_FAILURES=3
+Environment=WATCHDOG_COOLDOWN=300
+Environment=APP_PORT=5000
+
+[Install]
+WantedBy=multi-user.target
