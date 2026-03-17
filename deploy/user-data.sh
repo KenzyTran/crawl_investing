@@ -7,12 +7,15 @@ exec > >(tee -a "$LOG") 2>&1
 echo "=== Setup started at $(date) ==="
 
 # ──────── CẤU HÌNH ────────
-REPO_URL="https://github.com/YOUR_USERNAME/crawl_investing.git"
+REPO_URL="https://github.com/KenzyTran/crawl_investing.git"
 APP_DIR="/home/ec2-user/crawl_investing"
-N8N_BASE_URL="https://your-n8n-domain.com"
-N8N_API_KEY="your-n8n-api-key"
 N8N_VARIABLE_KEY="CRAWL_SERVER_IP"
 APP_PORT=5000
+
+# ──────── Lấy secrets từ SSM Parameter Store (miễn phí) ────────
+N8N_BASE_URL=$(aws ssm get-parameter --name "/crawl-api/n8n-base-url" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
+N8N_API_KEY=$(aws ssm get-parameter --name "/crawl-api/n8n-api-key" --with-decryption --query "Parameter.Value" --output text --region ap-southeast-1)
+echo "Loaded secrets from SSM Parameter Store"
 
 # ──────── Cài đặt dependencies ────────
 yum update -y

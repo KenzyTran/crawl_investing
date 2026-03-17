@@ -5,11 +5,11 @@ set -e
 
 # ──────── CẤU HÌNH - SỬA TRƯỚC KHI CHẠY ────────
 REGION="ap-southeast-1"
-AMI_ID="ami-0c02fb55956c7d316"           # Amazon Linux 2023 (kiểm tra AMI mới nhất cho region)
+AMI_ID="ami-0be9cb9f67c8dabd6"           # Amazon Linux 2023 (kiểm tra AMI mới nhất cho region)
 INSTANCE_TYPE="t3.micro"
-KEY_NAME="your-key-pair"                  # Tên key pair SSH
-SECURITY_GROUP_ID="sg-xxxxxxxxx"          # Security group (mở port 5000)
-SUBNET_IDS="subnet-xxx,subnet-yyy"       # Subnet IDs (ít nhất 2 AZ)
+KEY_NAME="n8n-key-pair"                  # Tên key pair SSH
+SECURITY_GROUP_ID="sg-0afb72601a16b9dca"          # Security group (mở port 5000)
+SUBNET_IDS="subnet-0ff649b902aff3770,subnet-09d7e82bb45577ae9"       # Subnet IDs (ít nhất 2 AZ)
 IAM_INSTANCE_PROFILE="CrawlApiRole"      # IAM role name (xem bên dưới)
 
 LT_NAME="crawl-api-lt"
